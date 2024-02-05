@@ -1,0 +1,47 @@
+mon Exp: 0
+mon Coef: 0
+mon Exp: 2
+mon Coef: 2
+deriveMon Exp: 1
+deriveMon Coef: 4
+poly: a Dictionary()
+poly: a Dictionary(2->2 )
+poly: a Dictionary(1->4 2->2 )
+poly: a Dictionary(1->4 2->8 )
+poly: a Dictionary(1->4 2->8 )
+poly: a Dictionary(0->-5 1->4 2->8 )
+poly: a Dictionary(0->-50 1->40 2->80 )
+poly: a Dictionary(0->-50 1->40 2->80 )
+poly: a Dictionary(4->-100 5->80 6->160 )
+derivePoly: a Dictionary(3->-400 4->400 5->960 )
+poly: a Dictionary(4->-100 5->80 6->160 )
+derivePoly: a Dictionary(1->1 3->-400 4->400 5->960 )
+poly: a Dictionary(2->2 4->-100 5->80 6->160 )
+eval1: 142
+eval2: 33922
+poly: a Dictionary(2->2 4->-100 5->80 6->160 )
+addPoly a Dictionary(2->4 4->-200 5->160 6->320 )
+poly: a Dictionary(2->4 4->-100 5->80 6->160 )
+addPoly a Dictionary(2->4 4->-200 5->160 6->320 )
+poly: a Dictionary(2->4 4->-100 5->80 6->160 )
+derivePoly: a Dictionary(1->1 3->-400 4->400 5->960 )
+poly + derivePoly: a Dictionary(1->1 2->4 3->-400 4->300 5->1040 6->160 )
+poly: a Dictionary(2->6 4->-100 5->80 6->160 )
+derivePoly: a Dictionary(1->1 2->2 3->-400 4->400 5->960 )
+poly + derivePoly: a Dictionary(1->1 2->4 3->-400 4->300 5->1040 6->160 )
+poly: a Dictionary()
+derivePoly: a Dictionary()
+evalEmpty: 0
+poly = a Dictionary(2->6 )
+poly = a Dictionary(1->12 )
+poly = a Dictionary(0->12 )
+poly = a Dictionary()
+poly = a Dictionary()
+mono = 2 . 2
+mono = 4 . 1
+mono = 4 . 0
+mono = 0 . 0
+mono = 0 . 0
+poly1 = a Dictionary(0->5 1->2 3->-2 5->5 )
+poly2 = a Dictionary(0->-5 1->-2 3->2 5->4 )
+result = a Dictionary(5->9 )

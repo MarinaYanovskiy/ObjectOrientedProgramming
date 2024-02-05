@@ -1,0 +1,22 @@
+
+polystream eval0: 0
+polystream eval1: 144
+polystream eval2: 288
+polystream eval0: 0
+polystream eval1: 148
+polystream eval2: 304
+polystream eval0: 0
+polystream eval1: 144
+polystream eval2: 288
+polystream eval0: 0
+polystream eval1: 144
+polystream eval2: 288
+polystream eval0: 0
+polystream eval1: 0
+polystream eval2: 0
+polystream1 eval0: 15
+polystream1 eval1: 28
+polystream1 eval2: 65
+polystream2 eval0: 28
+polystream2 eval1: 124
+polystream2 eval2: 412

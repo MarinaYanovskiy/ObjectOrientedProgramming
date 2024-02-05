@@ -1,0 +1,143 @@
+mon := Monom new.
+Transcript show: 'mon Exp: ', (mon exp); cr.
+Transcript show: 'mon Coef: ',(mon coef); cr.
+mon exp: 2.
+mon coef: 2.
+Transcript show: 'mon Exp: ', (mon exp); cr.
+Transcript show: 'mon Coef: ', (mon coef); cr.
+deriveMon := mon derivative.
+Transcript show: 'deriveMon Exp: ',(deriveMon exp); cr.
+Transcript show: 'deriveMon Coef: ',(deriveMon coef); cr.
+
+poly := Polynom new.
+Transcript show: 'poly: ', (poly asDictionary); cr.
+poly addMonom: mon.
+Transcript show: 'poly: ', (poly asDictionary); cr.
+poly addMonom: deriveMon.
+Transcript show: 'poly: ', (poly asDictionary); cr.
+poly addMonom: mon.
+poly addMonom: mon.
+poly addMonom: mon.
+Transcript show: 'poly: ', (poly asDictionary); cr.
+mon coef: -5.
+mon exp: 0.
+Transcript show: 'poly: ', (poly asDictionary); cr.
+poly addMonom: mon.
+Transcript show: 'poly: ', (poly asDictionary); cr.
+mon coef: 10.
+mon exp: 0.
+poly multiplyByMonom: mon.
+Transcript show: 'poly: ', (poly asDictionary); cr.
+mon coef: 2.
+mon exp: 4.
+Transcript show: 'poly: ', (poly asDictionary); cr.
+poly multiplyByMonom: mon.
+Transcript show: 'poly: ', (poly asDictionary); cr.
+
+derivePoly := poly derivative.
+Transcript show: 'derivePoly: ', (derivePoly asDictionary); cr.
+Transcript show: 'poly: ', (poly asDictionary); cr.
+mon exp: 1.
+mon coef: 1.
+derivePoly addMonom: mon.
+mon exp: 2.
+mon coef: 2.
+poly addMonom: mon.
+Transcript show: 'derivePoly: ', (derivePoly asDictionary); cr.
+Transcript show: 'poly: ', (poly asDictionary); cr.
+eval1 := poly eval: 1.
+eval2 := derivePoly eval: 2.
+Transcript show: 'eval1: ' , eval1; cr.
+Transcript show: 'eval2: ' , eval2; cr.
+
+addPoly := poly add: poly.
+Transcript show: 'poly: ', (poly asDictionary); cr.
+Transcript show: 'addPoly ', (addPoly asDictionary); cr.
+poly addMonom: mon.
+Transcript show: 'poly: ', (poly asDictionary); cr.
+Transcript show: 'addPoly ', (addPoly asDictionary); cr.
+addition := derivePoly add: poly.
+Transcript show: 'poly: ', (poly asDictionary); cr.
+Transcript show: 'derivePoly: ', (derivePoly asDictionary); cr.
+Transcript show: 'poly + derivePoly: ', (addition asDictionary); cr.
+poly addMonom: mon.
+derivePoly addMonom: mon.
+Transcript show: 'poly: ', (poly asDictionary); cr.
+Transcript show: 'derivePoly: ', (derivePoly asDictionary); cr.
+Transcript show: 'poly + derivePoly: ', (addition asDictionary); cr.
+
+
+
+mon coef: 0. 
+poly multiplyByMonom: mon.
+Transcript show: 'poly: ', (poly asDictionary); cr.
+derivePoly := poly derivative.
+Transcript show: 'derivePoly: ', (derivePoly asDictionary); cr.
+evalEmpty := poly eval: 10.
+Transcript show: 'evalEmpty: ' , evalEmpty; cr.
+
+mono := Monom new.
+polynom := Polynom new.
+mono exp:2.
+mono coef:2.
+polynom addMonom: mono.
+polynom addMonom: mono.
+polynom addMonom: mono.
+Transcript show: 'poly = ' , (polynom asDictionary);cr.
+polynom := polynom derivative.
+Transcript show: 'poly = ' , (polynom asDictionary);cr.
+polynom := polynom derivative.
+Transcript show: 'poly = ' , (polynom asDictionary);cr.
+polynom := polynom derivative.
+Transcript show: 'poly = ' , (polynom asDictionary);cr.
+polynom := polynom derivative.
+Transcript show: 'poly = ' , (polynom asDictionary);cr.
+Transcript show: 'mono = ' , (mono coef), ' . ' ,(mono exp);cr.
+mono := mono derivative.
+Transcript show: 'mono = ' , (mono coef), ' . ' ,(mono exp);cr.
+mono := mono derivative.
+Transcript show: 'mono = ' , (mono coef), ' . ' ,(mono exp);cr.
+mono := mono derivative.
+Transcript show: 'mono = ' , (mono coef), ' . ' ,(mono exp);cr.
+mono := mono derivative.
+Transcript show: 'mono = ' , (mono coef), ' . ' ,(mono exp);cr.
+
+poly1 := Polynom new.
+poly2 := Polynom new.
+mon := Monom new.
+mon coef: 5.
+poly1 addMonom: mon.
+mon coef: -5.
+poly2 addMonom: mon.
+mon coef: 2.
+mon exp: 1.
+poly1 addMonom: mon.
+mon coef: -2.
+poly2 addMonom: mon.
+mon exp: 3.
+poly1 addMonom: mon.
+mon coef: 2.
+poly2 addMonom: mon.
+mon coef: 5.
+mon exp: 5.
+poly1 addMonom: mon.
+mon coef: 4.
+mon exp: 5.
+poly2 addMonom: mon.
+result := poly1 add: poly2.
+Transcript show: 'poly1 = ' , (poly1 asDictionary);cr.
+Transcript show: 'poly2 = ' , (poly2 asDictionary);cr.
+Transcript show: 'result = ' , (result asDictionary);cr.
+
+
+"Run each line alone and ensure you get: invalid input exception"
+"
+mon exp: -1.
+mon exp: a.
+mon coef: a.
+poly addMonom: 1.
+poly multiplyByMonom: 3.
+poly eval: a.
+poly add: 3.
+"
+

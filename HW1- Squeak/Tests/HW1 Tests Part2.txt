@@ -1,0 +1,81 @@
+filterSet := Set new. 
+filterSet add: 2.
+polystream := PolyStream new.
+polystream addCoef: 4 withExp: 1.
+polystream substitute: 2. "8x"
+polystream substitute: 3. "24x"
+polystream multiplyBy: 3. "72x"
+polystream multiplyBy: 2. "144x"
+Transcript show: 'polystream eval0: ' , (polystream eval: 0);cr.
+Transcript show: 'polystream eval1: ' , (polystream eval: 1);cr.
+Transcript show: 'polystream eval2: ' , (polystream eval: 2);cr.
+polystream filter: filterSet.
+polystream addCoef: 4 withExp: 2.
+Transcript show: 'polystream eval0: ' , (polystream eval: 0);cr.
+Transcript show: 'polystream eval1: ' , (polystream eval: 1);cr.
+Transcript show: 'polystream eval2: ' , (polystream eval: 2);cr.
+polystream filter: filterSet.
+Transcript show: 'polystream eval0: ' , (polystream eval: 0);cr.
+Transcript show: 'polystream eval1: ' , (polystream eval: 1);cr.
+Transcript show: 'polystream eval2: ' , (polystream eval: 2);cr.
+polystream addCoef: 4 withExp: 2.
+polystream filter: filterSet.
+filterSet add: 1.
+Transcript show: 'polystream eval0: ' , (polystream eval: 0);cr.
+Transcript show: 'polystream eval1: ' , (polystream eval: 1);cr.
+Transcript show: 'polystream eval2: ' , (polystream eval: 2);cr.
+polystream multiplyBy: 0.
+Transcript show: 'polystream eval0: ' , (polystream eval: 0);cr.
+Transcript show: 'polystream eval1: ' , (polystream eval: 1);cr.
+Transcript show: 'polystream eval2: ' , (polystream eval: 2);cr.
+
+filter1 := Set new.
+filter1 add: 1.
+polystream1 := PolyStream new.
+polystream2 := PolyStream new.
+polystream1 addCoef: 5 withExp: 0.
+polystream1 addCoef: 1 withExp: 2.
+polystream1 substitute: 2.
+polystream1 multiplyBy: 3.
+polystream1 filter: filter1.
+polystream1 addCoef: 1 withExp:1.
+filter1 remove: 1.
+filter1 add: 3.
+polystream1 addCoef: 4 withExp:3.
+polystream1 filter: filter1.
+Transcript show: 'polystream1 eval0: ' , (polystream1 eval: 0);cr.
+Transcript show: 'polystream1 eval1: ' , (polystream1 eval: 1);cr.
+Transcript show: 'polystream1 eval2: ' , (polystream1 eval: 2);cr.
+
+
+polystream2 := PolyStream new.
+polystream2 addCoef: 3 withExp: 0.
+polystream2 addCoef: -1 withExp: 1.
+polystream2 substitute: 3.
+polystream2 multiplyBy: -1.
+polystream2 add: polystream1.
+polystream2 addCoef: 2 withExp: 0.
+polystream2 addCoef: 1 withExp: 1.
+filter2 := Set new.
+filter2 add: 1.
+polystream2 filter: filter2.
+polystream2 multiplyBy: 2.
+polystream2 substitute: 2.
+Transcript show: 'polystream2 eval0: ' , (polystream2 eval: 0);cr.
+Transcript show: 'polystream2 eval1: ' , (polystream2 eval: 1);cr.
+Transcript show: 'polystream2 eval2: ' , (polystream2 eval: 2);cr.
+
+
+
+
+"Run each line alone and ensure you get: invalid input exception"
+"
+polystream1 addCoef: 1 withExp: -1.
+polystream1 addCoef: 1 withExp: a.
+polystream1 addCoef: a withExp: 2.
+polystream2 add: a.
+polystream2 substitute: 0.
+polystream2 substitute: a.
+polystream2 multiplyBy: a.
+polystream2 eval: a.
+"
