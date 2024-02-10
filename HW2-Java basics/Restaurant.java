@@ -6,6 +6,7 @@ package OOP.Provided;
  * The id is unique for every restaurant.
  * */
 public interface Restaurant extends Comparable<Restaurant> {
+
     class RestaurantAlreadyInSystemException    extends Exception {}
     class RestaurantNotInSystemException        extends Exception {}
     class RateRangeException                    extends Exception {}
