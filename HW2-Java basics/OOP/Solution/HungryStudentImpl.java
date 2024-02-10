@@ -72,7 +72,15 @@ public class HungryStudentImpl implements HungryStudent{
 
     @Override
     public Collection<Restaurant> favoritesByDist(int dLimit) {
-        return null;
+        List<Restaurant> filteredFavorites = favoriteRestaurants.stream()
+                .filter(restaurant -> restaurant.distance() <= dLimit)
+                .sorted(Comparator
+                        .comparing(Restaurant::distance)
+                        .thenComparing(Restaurant::averageRating, Comparator.reverseOrder())
+                        .thenComparing(Restaurant::compareTo())) // צריך להוסיף מסעדה פיקטיבית שתשמש לציר ייחוס
+                .collect(Collectors.toList());
+
+        return filteredFavorites;
     }
 
     @Override
