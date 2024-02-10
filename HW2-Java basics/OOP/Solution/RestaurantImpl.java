@@ -2,9 +2,7 @@ package OOP.Solution;
 import OOP.Provided.HungryStudent;
 import OOP.Provided.Restaurant;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class RestaurantImpl implements Restaurant {
     private int id; //the restaurant id
@@ -69,5 +67,31 @@ public class RestaurantImpl implements Restaurant {
         }
         RestaurantImpl otherRestaurant = (RestaurantImpl) o; //cast o to class type
         return (otherRestaurant.id==this.id); //check if the ids are equal
+    }
+
+    @Override
+    String toString(){
+     /*   List<String>  words = new ArrayList<>();
+        words.add("Restaurant: "+this.name);
+        words.add("Id: "+String.valueOf(this.id));
+        words.add("Distance: "+String.valueOf(this.distFromTech));
+        words.add();*/
+
+return "";
+/** Restaurant: <name>.
+     * Id: <id>.
+     * Distance: <dist>.
+     * Menu: <menuItem1, menuItem2, menuItem3...>.
+     * </format>
+     * Note: Menu items are ordered by lexicographical order, asc.
+                *
+     * Example:
+     *
+     * Restaurant: BBB.
+                * Id: 1.
+                * Distance: 5.
+                * Menu: Cola, French Fries, Steak.
+                *
+     * */
     }
 }
