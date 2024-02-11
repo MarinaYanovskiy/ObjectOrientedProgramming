@@ -36,12 +36,12 @@ public interface HamburgerNetwork {
             throws RestaurantAlreadyInSystemException;
 
     /**
-     * @return a stream of all students in the network
+     * @return a collection of all students in the network
      * */
     Collection<HungryStudent> registeredStudents();
 
     /**
-     * @return a stream of all restaurants in the network
+     * @return a collection of all restaurants in the network
      * */
     Collection<Restaurant> registeredRestaurants();
 

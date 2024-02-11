@@ -3,6 +3,7 @@ import OOP.Provided.HungryStudent;
 import OOP.Provided.Restaurant;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 public class RestaurantImpl implements Restaurant {
     private int id; //the restaurant id
@@ -15,7 +16,7 @@ public class RestaurantImpl implements Restaurant {
         this.id=id;
         this.distFromTech=distFromTech;
         this.name=name;
-        this.menu=menu;
+        this.menu=new TreeSet<>(menu); // Ensure menu is sorted
         this.ratingsFromStudents=new HashMap<>();
     }
 
@@ -70,28 +71,10 @@ public class RestaurantImpl implements Restaurant {
     }
 
     @Override
-    String toString(){
-     /*   List<String>  words = new ArrayList<>();
-        words.add("Restaurant: "+this.name);
-        words.add("Id: "+String.valueOf(this.id));
-        words.add("Distance: "+String.valueOf(this.distFromTech));
-        words.add();*/
-
-return "";
-/** Restaurant: <name>.
-     * Id: <id>.
-     * Distance: <dist>.
-     * Menu: <menuItem1, menuItem2, menuItem3...>.
-     * </format>
-     * Note: Menu items are ordered by lexicographical order, asc.
-                *
-     * Example:
-     *
-     * Restaurant: BBB.
-                * Id: 1.
-                * Distance: 5.
-                * Menu: Cola, French Fries, Steak.
-                *
-     * */
+    public String toString(){
+        String menuItems = String.join(", ", menu);
+        // Formatting the entire string
+        return String.format("Restaurant: %s.\nId: %d.\nDistance: %d.\nMenu: %s.\n",
+                name, id, distFromTech, menuItems);
     }
 }
