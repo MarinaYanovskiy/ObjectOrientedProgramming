@@ -74,7 +74,11 @@ public class RestaurantImpl implements Restaurant {
     public String toString(){
         String menuItems = String.join(", ", menu);
         // Formatting the entire string
-        return String.format("Restaurant: %s.\nId: %d.\nDistance: %d.\nMenu: %s.\n",
+        return String.format("Restaurant: %s.\nId: %d.\nDistance: %d.\nMenu: %s.",
                 name, id, distFromTech, menuItems);
+    }
+
+    boolean didStudentRated(HungryStudent s){
+        return ratingsFromStudents.containsKey(s);
     }
 }

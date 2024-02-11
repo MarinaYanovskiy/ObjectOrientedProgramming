@@ -29,6 +29,11 @@ public class HungryStudentImpl implements HungryStudent{
     public HungryStudent favorite(Restaurant r) throws UnratedFavoriteRestaurantException {
         if (!favoriteRestaurants.contains(r)) {
             throw new UnratedFavoriteRestaurantException();
+            /*TODO: change the if statement because this will always throw an exception, it is incorrect.
+             * I implemented a method called- bool didStudentRated(HungryStudent s) for this case.
+             * It works on a restaurantImpl instance, receives a student and returns if the student rated that restaurant.
+             * Note: you need to cast the Restaurant to RestaurantImpl.
+             */
         }
         favoriteRestaurants.add(r);
         return this;
@@ -37,6 +42,7 @@ public class HungryStudentImpl implements HungryStudent{
     @Override
     public Collection<Restaurant> favorites() {
         return favoriteRestaurants;
+        //TODO: should return a copy of the collection?
     }
 
     @Override
@@ -49,12 +55,14 @@ public class HungryStudentImpl implements HungryStudent{
         }
         friends.add(s);
 //        s->friends.add(this); להוסיף גם את דיס בתור חבר של אס
+        //no need for that: in the faq in gr++ it is stated that it is asymmetric relationship in this part.
         return this;
     }
 
     @Override
     public Set<HungryStudent> getFriends() {
         return friends;
+        //TODO: should return a copy of the collection?
     }
 
     @Override
@@ -66,6 +74,8 @@ public class HungryStudentImpl implements HungryStudent{
                         .thenComparing(Restaurant::distance)
                         .thenComparing(Restaurant::compareTo())) // צריך להוסיף מסעדה פיקטיבית שתשמש לציר ייחוס
                 .collect(Collectors.toList());
+
+        //ToDo: implement comparator in an inner class and then use it!!!!! same for below.
 
         return filteredFavorites;
     }
@@ -86,5 +96,8 @@ public class HungryStudentImpl implements HungryStudent{
     @Override
     public int compareTo(HungryStudent o) {
         return 0;
+        //TODO: Implement it:)
     }
+
+    //TODO: implement ToString method by the format given in the interface.
 }
