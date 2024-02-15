@@ -30,23 +30,24 @@ public class RestaurantImpl implements Restaurant {
         if(r<0 || r>5) { //check if the rating r is in the range
            throw new RateRangeException();
         }
-        ratingsFromStudents.put(s,r); //update rating
+        this.ratingsFromStudents.put(s,r); //update rating
         return this;
     }
 
     @Override
     public int numberOfRates() {
-        return ratingsFromStudents.size();
+        return this.ratingsFromStudents.size();
     }
 
     @Override
     public double averageRating() {
-        int sumR=0; //sum all the ratings
-        for(Integer aRating : ratingsFromStudents.values()) //iterate over the ratings
+        double sumR=0; //sum all the ratings
+        for(Integer aRating :this.ratingsFromStudents.values()) //iterate over the ratings
         {
             sumR+=aRating;
         }
-        return (sumR/(ratingsFromStudents.size()));//return the average
+
+        return (sumR/(this.ratingsFromStudents.size()));//return the average
     }
 
     @Override
@@ -75,10 +76,20 @@ public class RestaurantImpl implements Restaurant {
         String menuItems = String.join(", ", menu);
         // Formatting the entire string
         return String.format("Restaurant: %s.\nId: %d.\nDistance: %d.\nMenu: %s.",
-                name, id, distFromTech, menuItems);
+                this.name, this.id, this.distFromTech, menuItems);
     }
 
     boolean didStudentRated(HungryStudent s){
-        return ratingsFromStudents.containsKey(s);
+        return this.ratingsFromStudents.containsKey(s);
+    }
+
+    String getName()
+    {
+        return this.name;
+    }
+
+    int getId()
+    {
+        return this.id;
     }
 }
