@@ -11,13 +11,13 @@ public class HungryStudentImpl implements HungryStudent{
     private int id;
     private String name;
     private Set<Restaurant> favoriteRestaurants;
-    private Set<HungryStudent> friends;
+    private Map<Integer,HungryStudent> friends;
 
     public HungryStudentImpl(int id, String name) {
         this.id = id;
         this.name = name;
         this.favoriteRestaurants = new HashSet<>();
-        this.friends = new HashSet<>();
+        this.friends = new TreeMap<>();
     }
 
     @Override
@@ -45,16 +45,17 @@ public class HungryStudentImpl implements HungryStudent{
         if (this.equals(s)) {
             throw new SameStudentException();
         }
-        if (this.friends.contains(s)) {
+        HungryStudentImpl student = (HungryStudentImpl) s;
+        if (this.friends.containsKey(student.id)) {
             throw new ConnectionAlreadyExistsException();
         }
-        this.friends.add(s);
+        this.friends.put(student.id,s);
         return this;
     }
 
     @Override
     public Set<HungryStudent> getFriends() {
-        Set<HungryStudent> copyOfFriends= new HashSet<>(this.friends);
+        Set<HungryStudent> copyOfFriends= new HashSet<>(this.friends.values());
         return copyOfFriends;
         ///maybe needs deepcopy
     }
@@ -151,4 +152,11 @@ public class HungryStudentImpl implements HungryStudent{
         return String.format("Hungry student: %s.\nId: %d.\nFavorites: %s.",
                 this.name, this.id, favoritesToString);
     }
+
+    int getId()
+    {
+        return  this.id;
+    }
+
+
 }
