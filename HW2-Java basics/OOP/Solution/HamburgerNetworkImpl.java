@@ -21,7 +21,7 @@ public class HamburgerNetworkImpl implements HamburgerNetwork {
     @Override
     public Restaurant addRestaurant(int id, String name, int dist, Set<String> menu) throws Restaurant.RestaurantAlreadyInSystemException {
         RestaurantImpl r = new RestaurantImpl(id,name,dist,menu);
-        if (this.restaurants.containsKey(r.getId()))
+        if (this.restaurants.containsKey(r.getId())) // Check the input
         {
             throw new Restaurant.RestaurantAlreadyInSystemException();
         }
@@ -47,7 +47,7 @@ public class HamburgerNetworkImpl implements HamburgerNetwork {
 
     @Override
     public Restaurant getRestaurant(int id) throws Restaurant.RestaurantNotInSystemException {
-        if(!this.restaurants.containsKey(id))
+        if(!this.restaurants.containsKey(id)) //Check the input.
         {
             throw new Restaurant.RestaurantNotInSystemException();
         }
@@ -69,10 +69,15 @@ public class HamburgerNetworkImpl implements HamburgerNetwork {
 
     @Override
     public Collection<Restaurant> favoritesByDist(HungryStudent s) throws HungryStudent.StudentNotInSystemException {
-       List<Restaurant> favOfFriends = new ArrayList<>();
-       for (HungryStudent friend: s.getFriends())
+       List<Restaurant> favOfFriends = new ArrayList<>(); //the result we are expecting
+        if(!students.containsValue(s))
+        {
+            throw new HungryStudent.StudentNotInSystemException();
+        }
+       for (HungryStudent friend: s.getFriends()) // We will iterate over the student's friends.
        {
-           List<Restaurant> favOfFriend = new ArrayList<>(friend.favoritesByDist(Integer.MAX_VALUE));
+           List<Restaurant> favOfFriend = new ArrayList<>(friend.favoritesByDist(Integer.MAX_VALUE)); // Get the desired order of the friend's favorites
+           //now we will remove duplications
            List<Integer> indicesToRemove = new ArrayList<>();
            for (int i=0; i<favOfFriend.size();i++)
            {
@@ -85,6 +90,8 @@ public class HamburgerNetworkImpl implements HamburgerNetwork {
            {
                favOfFriend.remove(indicesToRemove.get(i));
            }
+
+           //We are sure that the friend's favorite restaurants aren't in the list yet. Now we will add them all.
            favOfFriends.addAll(favOfFriend);
        }
 
@@ -93,7 +100,9 @@ public class HamburgerNetworkImpl implements HamburgerNetwork {
 
     @Override
     public boolean getRecommendation(HungryStudent s, Restaurant r, int t) throws HungryStudent.StudentNotInSystemException, Restaurant.RestaurantNotInSystemException, ImpossibleConnectionException {
-        return false;
+
+
+        return false; // Restaurant 'r' was not found within 't' hops
     }
 
     @Override
