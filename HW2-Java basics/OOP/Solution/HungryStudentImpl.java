@@ -26,7 +26,10 @@ public class HungryStudentImpl implements HungryStudent{
             RestaurantImpl convertedR = (RestaurantImpl) r;
             if(convertedR.didStudentRated(this))
             {
-                favoriteRestaurants.add(r);
+                if(!favoriteRestaurants.contains(r))
+                {
+                    favoriteRestaurants.add(r);
+                }
                 return this;
             }
         }
