@@ -10,13 +10,13 @@ public class HungryStudentImpl implements HungryStudent{
 
     private int id;
     private String name;
-    private Set<Restaurant> favoriteRestaurants;
+    private List<Restaurant> favoriteRestaurants;
     private Map<Integer,HungryStudent> friends;
 
     public HungryStudentImpl(int id, String name) {
         this.id = id;
         this.name = name;
-        this.favoriteRestaurants = new HashSet<>();
+        this.favoriteRestaurants = new ArrayList<>();
         this.friends = new TreeMap<>();
     }
 
@@ -38,7 +38,7 @@ public class HungryStudentImpl implements HungryStudent{
 
     @Override
     public Collection<Restaurant> favorites() {
-        Set<Restaurant> copy = new HashSet<>(this.favoriteRestaurants);
+        List<Restaurant> copy = new ArrayList<>(this.favoriteRestaurants);
         return copy;
         ///maybe needs deepcopy
     }
@@ -58,7 +58,16 @@ public class HungryStudentImpl implements HungryStudent{
 
     @Override
     public Set<HungryStudent> getFriends() {
-        Set<HungryStudent> copyOfFriends= new HashSet<>(this.friends.values());
+        Set<HungryStudent> copyOfFriends= new TreeSet<>(new Comparator<HungryStudent>()
+                //we want to keep the internal order when returning a copy.
+        {
+            @Override
+            public int compare(HungryStudent o1, HungryStudent o2) {
+                return Integer.compare(((HungryStudentImpl)o1).getId(), ((HungryStudentImpl)o2).getId());
+            }
+        }
+        );
+        copyOfFriends.addAll(this.friends.values());
         return copyOfFriends;
         ///maybe needs deepcopy
     }
@@ -139,6 +148,11 @@ public class HungryStudentImpl implements HungryStudent{
             // This might throw an exception or use some other logic to handle the comparison
             throw new IllegalArgumentException();
         }
+    }
+
+    @Override
+    public int hashCode() {
+        return this.id;
     }
 
     @Override

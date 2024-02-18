@@ -15,7 +15,13 @@ public class HamburgerNetworkImpl implements HamburgerNetwork {
 
     @Override
     public HungryStudent joinNetwork(int id, String name) throws HungryStudent.StudentAlreadyInSystemException {
-        return null;
+        if (students.containsKey(id)) {
+            throw new HungryStudent.StudentAlreadyInSystemException();
+        }
+
+        HungryStudentImpl student = new HungryStudentImpl(id, name);
+        students.put(id, student);
+        return student;
     }
 
     @Override
@@ -26,23 +32,28 @@ public class HamburgerNetworkImpl implements HamburgerNetwork {
             throw new Restaurant.RestaurantAlreadyInSystemException();
         }
         this.restaurants.put(r.getId(),r);
-        return null;
+        return r;
     }
 
     @Override
     public Collection<HungryStudent> registeredStudents() {
-        return null;
+        return new ArrayList<>(students.values());
     }
 
     @Override
     public Collection<Restaurant> registeredRestaurants() {
-        Set<Restaurant> copyOfRestaurants = new HashSet<>(this.restaurants.values());
-        return copyOfRestaurants;
+        return new ArrayList<>(this.restaurants.values());
     }
 
     @Override
     public HungryStudent getStudent(int id) throws HungryStudent.StudentNotInSystemException {
-        return null;
+        HungryStudent student = students.get(id);
+
+        if (student == null) {
+            throw new HungryStudent.StudentNotInSystemException();
+        }
+
+        return student;
     }
 
     @Override
@@ -56,42 +67,55 @@ public class HamburgerNetworkImpl implements HamburgerNetwork {
 
     @Override
     public HamburgerNetwork addConnection(HungryStudent s1, HungryStudent s2) throws HungryStudent.StudentNotInSystemException, HungryStudent.ConnectionAlreadyExistsException, HungryStudent.SameStudentException {
+        if(!this.students.containsValue(s1)|| !this.students.containsValue(s2)) {
+        throw new HungryStudent.StudentNotInSystemException();
+        }
         s1.addFriend(s2);
         s2.addFriend(s1);
-        //maybe need to handle exceptions
         return this;
     }
 
     @Override
     public Collection<Restaurant> favoritesByRating(HungryStudent s) throws HungryStudent.StudentNotInSystemException {
-        return null;
+        if (!students.containsValue(s)) {
+            throw new HungryStudent.StudentNotInSystemException();
+        }
+
+        List<Restaurant> favOfFriends = new ArrayList<>(); //the result we are expecting
+        Set<HungryStudent> sortedFriends = s.getFriends();
+
+        for (HungryStudent friend : sortedFriends) {// We will iterate over the student's friends.
+            List<Restaurant> favOfFriend = new ArrayList<>(friend.favoritesByRating(0));
+
+            //now we will not add duplications
+
+            // Remove duplicates
+            favOfFriend.removeAll(favOfFriends);
+
+            // Add the favorite restaurants of the friend to the result list
+            favOfFriends.addAll(favOfFriend);
+
+        }
+
+        return favOfFriends;
     }
 
     @Override
     public Collection<Restaurant> favoritesByDist(HungryStudent s) throws HungryStudent.StudentNotInSystemException {
-       List<Restaurant> favOfFriends = new ArrayList<>(); //the result we are expecting
         if(!students.containsValue(s))
         {
             throw new HungryStudent.StudentNotInSystemException();
         }
+        List<Restaurant> favOfFriends = new ArrayList<>(); //the result we are expecting
        for (HungryStudent friend: s.getFriends()) // We will iterate over the student's friends.
        {
            List<Restaurant> favOfFriend = new ArrayList<>(friend.favoritesByDist(Integer.MAX_VALUE)); // Get the desired order of the friend's favorites
-           //now we will remove duplications
-           List<Integer> indicesToRemove = new ArrayList<>();
-           for (int i=0; i<favOfFriend.size();i++)
-           {
-               if(favOfFriends.contains(favOfFriend.get(i)))
-               {
-                   indicesToRemove.add(i);
-               }
-           }
-           for (int i=indicesToRemove.size()-1; i>=0;i--)
-           {
-               favOfFriend.remove(indicesToRemove.get(i));
-           }
 
-           //We are sure that the friend's favorite restaurants aren't in the list yet. Now we will add them all.
+           //now we will not add duplications
+           // Remove duplicates
+           favOfFriend.removeAll(favOfFriends);
+
+           // Add the favorite restaurants of the friend to the result list
            favOfFriends.addAll(favOfFriend);
        }
 
@@ -100,33 +124,93 @@ public class HamburgerNetworkImpl implements HamburgerNetwork {
 
     @Override
     public boolean getRecommendation(HungryStudent s, Restaurant r, int t) throws HungryStudent.StudentNotInSystemException, Restaurant.RestaurantNotInSystemException, ImpossibleConnectionException {
+//First, lest validate the arguments.
+        if(!students.containsValue(s))
+        {
+            throw new HungryStudent.StudentNotInSystemException();
+        }
+        if(!restaurants.containsValue(r))
+        {
+            throw new Restaurant.RestaurantNotInSystemException();
+        }
+        if(t<0)
+        {
+            throw new ImpossibleConnectionException();
+        }
 
+        Queue<HungryStudent> queueStudents = new LinkedList<>(); // Queue to hold students
+        Queue<Integer> queueDist = new LinkedList<>(); // Queue to hold students corresponding distance from 's'
 
+        Set<Integer> visited = new HashSet<>(); // To keep track of visited students
+
+        queueStudents.add(s); // Start with the given student, distance 0
+        queueDist.add(0);
+        visited.add(((HungryStudentImpl)s).getId()); // Mark as visited
+
+        while (!queueStudents.isEmpty()) {
+            // Current student and their distance from 's'
+            HungryStudent currentStudent = queueStudents.poll();
+            int distance = queueDist.poll();
+
+            // Check if the current student likes the restaurant and is within 't' hops
+            if (distance <= t && currentStudent.favorites().contains(r)) {
+                return true;
+            }
+
+            // If not, put in the queue all the friends of the current student, if they haven't been visited
+            if (distance < t) { // Only consider friends if we haven't reached the limit 't'
+                for (HungryStudent friend : currentStudent.getFriends()) {
+                    if (!visited.contains(((HungryStudentImpl)friend).getId())) {
+                        visited.add(((HungryStudentImpl)friend).getId());
+                        // Increment distance for the next level
+                        queueStudents.add(friend);
+                        queueDist.add(distance+1);
+                    }
+                }
+            }
+        }
         return false; // Restaurant 'r' was not found within 't' hops
     }
 
     @Override
     public String toString() {
-        String stringStudents = students.keySet().stream()
-                .map(Object::toString)
-                .collect(Collectors.joining(", "));
-        String stringRestaurants = restaurants.keySet().stream()
-                .map(Object::toString)
-                .collect(Collectors.joining(", "));
+        StringBuilder result = new StringBuilder();
 
-        String studentsAndFriends = "";
-        for (HungryStudent s : this.students.values())
-        {
-            HungryStudentImpl student= (HungryStudentImpl) s;
-            studentsAndFriends.concat(String.valueOf(student.getId())+" -> "); //adding the student Id to the format
-            Set<HungryStudent> friend = new HashSet<>(student.getFriends());
+        // Registered students
+        result.append("Registered students: ")
+                .append(students.keySet().stream()
+                        .map(Object::toString)
+                        .collect(Collectors.joining(", ")))
+                .append(".\n");
 
-            //for Koren to continue:)
+        // Registered restaurants
+        result.append("Registered restaurants: ")
+                .append(restaurants.keySet().stream()
+                        .map(Object::toString)
+                        .collect(Collectors.joining(", ")))
+                .append(".\n");
+
+        // Students and their friends
+        result.append("Students:\n");
+        for (Map.Entry<Integer,HungryStudent> entry : this.students.entrySet()) {
+            result.append(entry.getKey()).append(" -> [");
+            Set<HungryStudent> friends = new HashSet<>(entry.getValue().getFriends());
+            List<Integer> friendsIds = new ArrayList<>();
+            for (HungryStudent friend:friends)
+            {
+                friendsIds.add(((HungryStudentImpl)friend).getId());
+            }
+            result.append(friendsIds.stream()
+                            .map(Object::toString)
+                            .collect(Collectors.joining(", ")))
+                    .append("].\n");
         }
+        result.append("End students.");
 
-
-        return "";
+        return result.toString();
     }
+
+
     /**
      * @return the network's description as a string in the following format:
      * <format>
