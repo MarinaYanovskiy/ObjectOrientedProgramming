@@ -30,6 +30,7 @@ public class StoryTesterImpl implements StoryTester {
             Object enclosingInstance = createTestInstance(enclosingClass);
             // Find the constructor that takes the enclosing class instance as a parameter
             Constructor<?> constructor = testClass.getDeclaredConstructor(enclosingClass);
+            constructor.setAccessible(true);
             // Create an instance of the nested class
             res= constructor.newInstance(enclosingInstance);
         }
@@ -140,13 +141,16 @@ public class StoryTesterImpl implements StoryTester {
         String[] givenAndAllTheRest = story.split(" ", 2);
         String aGivenSentence = givenAndAllTheRest[0].substring(givenAndAllTheRest[0].indexOf(' '), givenAndAllTheRest[0].lastIndexOf(' ')); // Sentence without the parameter and annotation
 
-        //step3: create instance of test class
+        //step3: create instance of test class--- no need!
         this.numFails = 0;
-        Object testInstance = createTestInstance(testClass); /**why do we need it?**/
         Object testedObject = null; //TODO: change.
 
-        //TODO: complete step 4: find the matching class that understands the Given sentence.
-        //TODO: complete step 5: create an instance of it, and of the object.
+        // step 4: find the matching class that understands the Given sentence.
+        Class<?> declaresGiven= findClassDeclaringGivenForNested(aGivenSentence,testClass);
+
+        // step 5: create an instance of it, and TODO: of the object.
+        Object testInstance=createTestInstance(declaresGiven);
+
 
         //step 6: for every sentence in the rest of the story:
         for(String sentence : givenAndAllTheRest[1].split("\n")) {
@@ -154,14 +158,13 @@ public class StoryTesterImpl implements StoryTester {
             boolean methodFound = false;
             String[] words = sentence.split(" ", 2);
 
-
             String annotationName = words[0];
-            Class<? extends Annotation> annotationClass = GetAnnotationClass(annotationName);
-
             String sentenceSub = words[1].substring(0, words[1].lastIndexOf(' ')); // Sentence without the parameter and annotation
             String parameter = sentence.substring(sentence.lastIndexOf(' ') + 1);
 
-            //TODO: step 6.2: find and get a function with the proper annotation+sentence
+
+            //step 6.2: find and get a function with the proper annotation+sentence
+            Method methodToInvoke= findMatchingMethodInNested(declaresGiven,annotationName,sentenceSub);
 
             //step 6.3: if the annotation is "when"- backup the object.
             if(annotationName.equals("When"))
@@ -180,6 +183,103 @@ public class StoryTesterImpl implements StoryTester {
         // TODO: step 7: Throw StoryTestExceptionImpl if the story failed.
     }
 
+
+    /** Find the class that declares the Given method.
+     *
+     * @param sentenceSub- the value that the annotation should have.
+     * @param testClass- the class we search in
+     * @return the class that declares the method by the rules in the PDF.
+     */
+    public static Class<?> findClassDeclaringGivenForNested(String sentenceSub,Class<?> testClass){
+        if(findMatchingMethodInInheritance(testClass,"Given",sentenceSub)!=null){
+            return testClass;
+        }
+
+        for (Class<?> aNestedClass : testClass.getDeclaredClasses()){
+            if(findMatchingMethodInInheritance(aNestedClass,"Given",sentenceSub)!=null){
+               return aNestedClass;
+            }
+            return findClassDeclaringGivenForNested(sentenceSub,aNestedClass);
+        }
+        return null;
+    }
+
+    /** Find a method from inheritance hierarchy
+     *
+     * @param testClass: a class to begin the search with.
+     * @param strAnnotation: the annotation that should annotate the method.
+     * @param sentenceSub: the value the annotation should have.
+     * @return a method annotated by the annotation with the received value.
+     */
+    public static Method findMatchingMethodInInheritance(Class<?> testClass, String strAnnotation, String sentenceSub){
+        for (Method aMethod: testClass.getDeclaredMethods()){ //check if the current class understands declares that method
+            if(doesMethodHaveAnnotationWithValue(aMethod,strAnnotation,sentenceSub)){
+                return aMethod;
+            }
+        }
+        //if reached here - the current class does not declare that method. need to search in it inheritance hierarchy
+        if (testClass !=Object.class){
+           return findMatchingMethodInInheritance(testClass.getSuperclass(),strAnnotation,sentenceSub);
+        }
+       return null;
+    }
+
+    /** Will be filled later due to questions about the pdf.
+     *
+     * @param testClass
+     * @param strAnnotation
+     * @param sentenceSub
+     * @return
+     */
+    //ToDo: check PIAZZA regarding nested classes!!!!!
+    public static Method findMatchingMethodInNested(Class<?> testClass, String strAnnotation, String sentenceSub){
+        Method method =findMatchingMethodInInheritance(testClass,strAnnotation,sentenceSub);
+        if (method!=null){
+            return method;
+        }
+        //if reached here - the current class did not find that method in its hierarchy. need to search in the enclosing class hierarchy.
+        if(testClass.getEnclosingClass()!=null) {
+           return findMatchingMethodInNested(testClass.getEnclosingClass(),strAnnotation,sentenceSub);
+        }
+        //if reached here - this is a top level class.
+        return null;
+    }
+
+    /****
+     * This function checks if a method is annotated by a specific annotation with a specific value.
+     * @param aMethod: a method we will check.
+     * @param strAnnotation: the annotation to search for.
+     * @param sentenceSub: the value that annotation should have.
+     * @return true if indeed the  method is annotated by the specific annotation with the specific value
+     */
+    public static boolean doesMethodHaveAnnotationWithValue(Method aMethod, String strAnnotation ,String sentenceSub){
+       Class<? extends Annotation> annClass=GetAnnotationClass(strAnnotation);
+       String annotationValue = null;
+       switch (strAnnotation){
+           case "Given":
+                Given isGiven= (Given) aMethod.getAnnotation(annClass);
+                annotationValue=isGiven.value();
+                break;
+           case "When":
+               When isWhen= (When) aMethod.getAnnotation(annClass);
+               annotationValue=isWhen.value();
+               break;
+           case "Then":
+               Then isThen = (Then) aMethod.getAnnotation(annClass);
+               annotationValue=isThen.value();
+               break;
+       }
+       if(annotationValue!=null){
+           if(annotationValue.substring(0,annotationValue.lastIndexOf(" ")).equals(sentenceSub))
+           {
+               return true;
+           }
+       }
+       return false;
+    }
+
 }
+
+
 
 
