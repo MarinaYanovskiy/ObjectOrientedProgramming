@@ -20,11 +20,20 @@ public class StoryTesterImpl implements StoryTester {
     private static Object createTestInstance(Class<?> testClass) throws Exception {//this creates an instance of the received class (testClass: a Class instance).
        Object res;
         try { //we try to invoke the default c'tor
-            res=testClass.getConstructor().newInstance();
+            Constructor<?> constructor = testClass.getConstructor();
+            constructor.setAccessible(true);
+            res=constructor.newInstance();
         } catch (Exception e) {
-            // TODO: Inner classes case; Need to first create an instance of the enclosing class
+            //Inner classes case; Need to first create an instance of the enclosing class
+            Class<?> enclosingClass = testClass.getEnclosingClass();
+            // Recursively create an instance of the enclosing class
+            Object enclosingInstance = createTestInstance(enclosingClass);
+            // Find the constructor that takes the enclosing class instance as a parameter
+            Constructor<?> constructor = testClass.getDeclaredConstructor(enclosingClass);
+            // Create an instance of the nested class
+            res= constructor.newInstance(enclosingInstance);
         }
-        return null;//TODO: change it to res object
+        return res;
     }
 
     /** Returns true if c has a copy constructor, or false if it doesn't **/
