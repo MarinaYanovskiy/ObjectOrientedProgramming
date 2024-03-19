@@ -110,25 +110,47 @@ public class StoryTesterImpl implements StoryTester {
 
     @Override
     public void testOnInheritanceTree(String story, Class<?> testClass) throws Exception {
+        //step1: check if the args are valid.
         if((story == null) || testClass == null) throw new IllegalArgumentException();
 
+        //step 2: create an instance of the testing object.
         this.numFails = 0;
         Object testInstance = createTestInstance(testClass);
 
+        //step 3: for every sentence-
         for(String sentence : story.split("\n")) {
+            //step 3.1: parse it.
             boolean methodFound = false;
             String[] words = sentence.split(" ", 2);
 
             String annotationName = words[0];
-            Class<? extends Annotation> annotationClass = GetAnnotationClass(annotationName);
 
             String sentenceSub = words[1].substring(0, words[1].lastIndexOf(' ')); // Sentence without the parameter and annotation
             String parameter = sentence.substring(sentence.lastIndexOf(' ') + 1);
-            
-            // TODO: Complete.
+
+
+            //step 3.2: find a method to invoke. if not found - throw an exception.
+            Method toInvoke = findMatchingMethodInInheritance(testClass,annotationName,sentenceSub);
+            if(toInvoke==null){
+                switch (annotationName){
+                    case "Given":throw new GivenNotFoundException();
+                    case "When":throw new WhenNotFoundException();
+                    case "Then":throw new ThenNotFoundException();
+                }
+            }
+
+            //TODO: step 3.3: try to invoke method
+            if(annotationName.equals("When")){
+               //TODO: back up the instance.
+            }
+
+            //TODO: step 3.4: handle failure.
         }
 
-        // TODO: Throw StoryTestExceptionImpl if the story failed.
+        // TODO: step 4: throw StoryTestExceptionImpl if the story failed.
+        if(numFails>0){
+
+        }
     }
 
 
@@ -143,6 +165,9 @@ public class StoryTesterImpl implements StoryTester {
 
         // step 3: find the matching class that understands the Given sentence.
         Class<?> declaresGiven= findClassDeclaringGivenForNested(aGivenSentence,testClass);
+        if (declaresGiven==null){
+            throw new GivenNotFoundException();
+        }
 
         // step 4: now follow the testOnInheritance logic
         testOnInheritanceTree(story,declaresGiven);
