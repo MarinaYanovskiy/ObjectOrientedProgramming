@@ -138,49 +138,14 @@ public class StoryTesterImpl implements StoryTester {
         if((story == null) || testClass == null) throw new IllegalArgumentException();
 
         //step2: get the first Given sentence.
-        String[] givenAndAllTheRest = story.split(" ", 2);
-        String aGivenSentence = givenAndAllTheRest[0].substring(givenAndAllTheRest[0].indexOf(' '), givenAndAllTheRest[0].lastIndexOf(' ')); // Sentence without the parameter and annotation
+        String[] givenAndAllTheRest = story.split("\n", 2);
+        String aGivenSentence = givenAndAllTheRest[0].substring(givenAndAllTheRest[0].indexOf(' ')+1, givenAndAllTheRest[0].lastIndexOf(' ')); // Sentence without the parameter and annotation
 
-        //step3: create instance of test class--- no need!
-        this.numFails = 0;
-        Object testedObject = null; //TODO: change.
-
-        // step 4: find the matching class that understands the Given sentence.
+        // step 3: find the matching class that understands the Given sentence.
         Class<?> declaresGiven= findClassDeclaringGivenForNested(aGivenSentence,testClass);
 
-        // step 5: create an instance of it, and TODO: of the object.
-        Object testInstance=createTestInstance(declaresGiven);
-
-
-        //step 6: for every sentence in the rest of the story:
-        for(String sentence : givenAndAllTheRest[1].split("\n")) {
-            //step 6.1: break down the sentence to pieces.
-            boolean methodFound = false;
-            String[] words = sentence.split(" ", 2);
-
-            String annotationName = words[0];
-            String sentenceSub = words[1].substring(0, words[1].lastIndexOf(' ')); // Sentence without the parameter and annotation
-            String parameter = sentence.substring(sentence.lastIndexOf(' ') + 1);
-
-
-            //step 6.2: find and get a function with the proper annotation+sentence
-            Method methodToInvoke= findMatchingMethodInNested(declaresGiven,annotationName,sentenceSub);
-
-            //step 6.3: if the annotation is "when"- backup the object.
-            if(annotationName.equals("When"))
-            {
-             this.backUpInstance(testedObject);
-            }
-            try{
-                //TODO: step 6.4: invoke the found function.
-            } catch (Exception e) { //we will reach this if a "then" sentence failed.
-                //step 6.5: restore the object.
-                this.restoreInstance(testedObject);
-                //TODO: step 6.6:: update faliure statistics.
-            }
-        }
-
-        // TODO: step 7: Throw StoryTestExceptionImpl if the story failed.
+        // step 4: now follow the testOnInheritance logic
+        testOnInheritanceTree(story,declaresGiven);
     }
 
 
@@ -195,11 +160,18 @@ public class StoryTesterImpl implements StoryTester {
             return testClass;
         }
 
+        Class<?> aClass=null;
         for (Class<?> aNestedClass : testClass.getDeclaredClasses()){
-            if(findMatchingMethodInInheritance(aNestedClass,"Given",sentenceSub)!=null){
-               return aNestedClass;
+            if(!aNestedClass.isInterface()){
+                if(findMatchingMethodInInheritance(aNestedClass,"Given",sentenceSub)!=null){
+                    return aNestedClass;
+                }
+                aClass= findClassDeclaringGivenForNested(sentenceSub,aNestedClass);
+                if(aClass!=null)
+                {
+                    return aClass;
+                }
             }
-            return findClassDeclaringGivenForNested(sentenceSub,aNestedClass);
         }
         return null;
     }
@@ -224,26 +196,6 @@ public class StoryTesterImpl implements StoryTester {
        return null;
     }
 
-    /** Will be filled later due to questions about the pdf.
-     *
-     * @param testClass
-     * @param strAnnotation
-     * @param sentenceSub
-     * @return
-     */
-    //ToDo: check PIAZZA regarding nested classes!!!!!
-    public static Method findMatchingMethodInNested(Class<?> testClass, String strAnnotation, String sentenceSub){
-        Method method =findMatchingMethodInInheritance(testClass,strAnnotation,sentenceSub);
-        if (method!=null){
-            return method;
-        }
-        //if reached here - the current class did not find that method in its hierarchy. need to search in the enclosing class hierarchy.
-        if(testClass.getEnclosingClass()!=null) {
-           return findMatchingMethodInNested(testClass.getEnclosingClass(),strAnnotation,sentenceSub);
-        }
-        //if reached here - this is a top level class.
-        return null;
-    }
 
     /****
      * This function checks if a method is annotated by a specific annotation with a specific value.
