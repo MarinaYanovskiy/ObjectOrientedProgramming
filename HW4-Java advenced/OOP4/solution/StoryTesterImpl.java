@@ -1,10 +1,12 @@
 package solution;
 
+import org.junit.ComparisonFailure;
 import provided.*;
 
 import java.lang.annotation.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 
@@ -18,9 +20,9 @@ public class StoryTesterImpl implements StoryTester {
 
     /** Creates and returns a new instance of testClass **/
     private static Object createTestInstance(Class<?> testClass) throws Exception {//this creates an instance of the received class (testClass: a Class instance).
-       Object res;
+        Object res;
         try { //we try to invoke the default c'tor
-            Constructor<?> constructor = testClass.getConstructor();
+            Constructor<?> constructor = testClass.getDeclaredConstructor();
             constructor.setAccessible(true);
             res=constructor.newInstance();
         } catch (Exception e) {
@@ -48,7 +50,7 @@ public class StoryTesterImpl implements StoryTester {
     }
 
     /** Assigns into objectBackup a backup of obj.
-    /** See homework's pdf for more details on backing up and restoring **/
+     /** See homework's pdf for more details on backing up and restoring **/
     private void backUpInstance(Object obj) throws Exception {
         Object res = createTestInstance(obj.getClass()); //create a new instance from the obj. type
         Field[] fieldsArr = obj.getClass().getDeclaredFields();// get all the fields declared by the object
@@ -60,7 +62,6 @@ public class StoryTesterImpl implements StoryTester {
                 continue; //we will continue to the next field
             }
             Class<?> fieldClass = fieldObject.getClass();  //create a meta class of the field- need to know how to save it
-
             if(fieldObject instanceof Cloneable){
                 //Case1 - Object in field is cloneable. need to invoke the clone method!
                 Method clone_m;
@@ -71,28 +72,30 @@ public class StoryTesterImpl implements StoryTester {
                     clone_m=fieldClass.getMethod("clone");
                 }
                 clone_m.setAccessible(true);
-                field.set(res,clone_m.invoke(field));
+                field.set(res,clone_m.invoke(fieldObject));
             }
             else if(copyConstructorExists(fieldClass)){
                 // Case2 - Object in field is not cloneable but copy constructor exists
-                Constructor<?> copyCtor = fieldClass.getConstructor(fieldClass);
-                field.set(res,copyCtor.newInstance(field));
+                Constructor<?> copyCtor;
+                copyCtor = fieldClass.getDeclaredConstructor(fieldClass);
+                copyCtor.setAccessible(true);
+                field.set(res,copyCtor.newInstance(fieldObject));
             }
             else{
                 //Case3 - Object in field is not cloneable and copy constructor does not exist
-                field.set(res,field);
+                field.set(res,fieldObject);
             }
         }
         this.objectBackup = res;
     }
 
     /** Assigns into obj's fields the values in objectBackup fields.
-    /** See homework's pdf for more details on backing up and restoring **/
+     /** See homework's pdf for more details on backing up and restoring **/
     private void restoreInstance(Object obj) throws Exception{
         Field[] classFields = obj.getClass().getDeclaredFields();
         for(Field field : classFields) {
             field.setAccessible(true);
-           field.set(obj,field.get(objectBackup));
+            field.set(obj,field.get(objectBackup));
         }
     }
 
@@ -110,46 +113,85 @@ public class StoryTesterImpl implements StoryTester {
 
     @Override
     public void testOnInheritanceTree(String story, Class<?> testClass) throws Exception {
-        //step1: check if the args are valid.
-        if((story == null) || testClass == null) throw new IllegalArgumentException();
+        // Check if the arguments are valid
+        if (story == null || testClass == null) {
+            throw new IllegalArgumentException();
+        }
 
-        //step 2: create an instance of the testing object.
         this.numFails = 0;
+        int numOfWhen=0;
+        // Create an instance of the testing object
         Object testInstance = createTestInstance(testClass);
 
-        //step 3: for every sentence-
-        for(String sentence : story.split("\n")) {
-            //step 3.1: parse it.
+        // Split the story into sentences and iterate through each sentence
+        for (String sentence : story.split("\n")) {
+            // Parse the sentence
             boolean methodFound = false;
             String[] words = sentence.split(" ", 2);
-
             String annotationName = words[0];
-
-            String sentenceSub = words[1].substring(0, words[1].lastIndexOf(' ')); // Sentence without the parameter and annotation
+            String sentenceSub = words[1].substring(0, words[1].lastIndexOf(' '));
             String parameter = sentence.substring(sentence.lastIndexOf(' ') + 1);
 
-
-            //step 3.2: find a method to invoke. if not found - throw an exception.
-            Method toInvoke = findMatchingMethodInInheritance(testClass,annotationName,sentenceSub);
-            if(toInvoke==null){
-                switch (annotationName){
-                    case "Given":throw new GivenNotFoundException();
-                    case "When":throw new WhenNotFoundException();
-                    case "Then":throw new ThenNotFoundException();
+            // Find a matching method to invoke in the inheritance tree
+            Method toInvoke = findMatchingMethodInInheritance(testClass, annotationName, sentenceSub);
+            if (toInvoke == null) {
+                // If method not found, throw an exception based on annotation type
+                switch (annotationName) {
+                    case "Given":
+                        throw new GivenNotFoundException();
+                    case "When":
+                        throw new WhenNotFoundException();
+                    case "Then":
+                        throw new ThenNotFoundException();
                 }
             }
 
-            //TODO: step 3.3: try to invoke method
-            if(annotationName.equals("When")){
-               //TODO: back up the instance.
-            }
+            // Try to invoke the method
+            try {
+                //first: back up if needed.
+                if (annotationName.equals("When")) {
+                    if (numOfWhen==0){
+                        // Backup the instance if annotation is "When"
+                        backUpInstance(testInstance);
+                    }
+                    numOfWhen++;
+                }
+                else {
+                    numOfWhen=0;
+                }
+                // Set visibility of the method to "true" and invoke the method with the parameter.
+                toInvoke.setAccessible(true);
+                //we want to pass an integer if the parameter is integer, or string if it is a string.
+                //means: parse the parameter if it needs to be parsed.
+                if (toInvoke.getParameterTypes()[0]== Integer.class || toInvoke.getParameterTypes()[0] == int.class) {
+                    toInvoke.invoke(testInstance, Integer.parseInt(parameter));
+                }
+                else {
+                    toInvoke.invoke(testInstance, parameter);
+                }
 
-            //TODO: step 3.4: handle failure.
+            }
+            //If invoke failed: handle failure.
+            catch (InvocationTargetException e) {
+                if(!(e.getTargetException() instanceof ComparisonFailure)){
+                    throw e;
+                }
+                //if it is the first failure - save the data.
+                if(this.numFails==0){
+                    this.firstFailedSentence = sentence;
+                    this.expected = ((ComparisonFailure)e.getTargetException()).getExpected();
+                    this.result =  ((ComparisonFailure)e.getTargetException()).getActual();
+                }
+                this.numFails++;
+                if (annotationName.equals("Then")) { //need to restore the object.
+                    restoreInstance(testInstance);
+                }
+            }
         }
 
-        // TODO: step 4: throw StoryTestExceptionImpl if the story failed.
-        if(numFails>0){
-
+        // Throw StoryTestExceptionImpl if the story failed
+        if (numFails > 0) {
+            throw new StoryTestExceptionImpl(numFails, firstFailedSentence, expected, result);
         }
     }
 
@@ -216,9 +258,9 @@ public class StoryTesterImpl implements StoryTester {
         }
         //if reached here - the current class does not declare that method. need to search in it inheritance hierarchy
         if (testClass !=Object.class){
-           return findMatchingMethodInInheritance(testClass.getSuperclass(),strAnnotation,sentenceSub);
+            return findMatchingMethodInInheritance(testClass.getSuperclass(),strAnnotation,sentenceSub);
         }
-       return null;
+        return null;
     }
 
 
@@ -230,29 +272,32 @@ public class StoryTesterImpl implements StoryTester {
      * @return true if indeed the  method is annotated by the specific annotation with the specific value
      */
     public static boolean doesMethodHaveAnnotationWithValue(Method aMethod, String strAnnotation ,String sentenceSub){
-       Class<? extends Annotation> annClass=GetAnnotationClass(strAnnotation);
-       String annotationValue = null;
-       switch (strAnnotation){
-           case "Given":
+        Class<? extends Annotation> annClass=GetAnnotationClass(strAnnotation);
+        if(aMethod.getAnnotation(annClass)==null){
+            return false;
+        }
+        String annotationValue = null;
+        switch (strAnnotation){
+            case "Given":
                 Given isGiven= (Given) aMethod.getAnnotation(annClass);
                 annotationValue=isGiven.value();
                 break;
-           case "When":
-               When isWhen= (When) aMethod.getAnnotation(annClass);
-               annotationValue=isWhen.value();
-               break;
-           case "Then":
-               Then isThen = (Then) aMethod.getAnnotation(annClass);
-               annotationValue=isThen.value();
-               break;
-       }
-       if(annotationValue!=null){
-           if(annotationValue.substring(0,annotationValue.lastIndexOf(" ")).equals(sentenceSub))
-           {
-               return true;
-           }
-       }
-       return false;
+            case "When":
+                When isWhen= (When) aMethod.getAnnotation(annClass);
+                annotationValue=isWhen.value();
+                break;
+            case "Then":
+                Then isThen = (Then) aMethod.getAnnotation(annClass);
+                annotationValue=isThen.value();
+                break;
+        }
+        if(annotationValue!=null){
+            if(annotationValue.substring(0,annotationValue.lastIndexOf(" ")).equals(sentenceSub))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
 }
