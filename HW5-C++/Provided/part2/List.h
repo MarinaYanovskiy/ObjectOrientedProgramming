@@ -52,7 +52,7 @@ struct SetAtIndex{};
 
 template<int N, typename U, typename T, typename... Ts>
 struct SetAtIndex<N, U, List<T, Ts...>> {
-    typedef typename PrependList<T, typename SetAtIndex<N - 1, U, typename List<Ts...>>::list>::list list;
+    typedef typename PrependList<T, typename SetAtIndex<N - 1, U, List<Ts...>>::list>::list list;
 };
 
 template<typename U, typename T, typename... Ts>

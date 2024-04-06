@@ -7,7 +7,7 @@ class Observer {
     Observer() = default;
     virtual ~Observer() = default;
 
-    virtual void handleEvent(const T&) = 0;
+    virtual void handleEvent(const T& t) = 0;
 };
 
 #endif // OOP5_OBSERVER_H

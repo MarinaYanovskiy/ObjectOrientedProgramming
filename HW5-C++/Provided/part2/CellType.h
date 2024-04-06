@@ -2,7 +2,7 @@
 #define OOP5_CELLTYPE_H
 
 enum CellType {
-    EMPTY,
+    EMPTY=0,
     X,
     A,
     B,

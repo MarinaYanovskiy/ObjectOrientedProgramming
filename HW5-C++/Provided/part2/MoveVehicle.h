@@ -7,7 +7,7 @@
 #include "Utilities.h"
 #include "TransposeList.h"
 #include <iostream>
-#include "Printer.h"
+
 
 template<CellType t_type, Direction d_dir, int a_amount>
 struct Move {
@@ -40,22 +40,27 @@ struct Find_Car_Helper{
     static constexpr bool found = (type==type2);
     static constexpr bool last_cell_in_board = (last_row && (col + 1 == GameBoard<B>::width));
 
+    //static_assert(found!= true,"found");
     static_assert(!(!found && last_cell_in_board), "Type was not found!");
 
-    static constexpr int next_row = ConditionalInteger<col + 1 == GameBoard<B>::width, row + 1, row>::value; // this is the next cell's row
-    static constexpr int next_col = ConditionalInteger<col + 1 == GameBoard<B>::width, 0, col + 1>::value; // this is the next cell's column
+
+    static constexpr int next_row = ConditionalInteger<col + 1 == GameBoard<B>::width, ConditionalInteger<last_cell_in_board,row,row+1>::value, row>::value; // this is the next cell's row
+    static constexpr int next_col = ConditionalInteger<col + 1 == GameBoard<B>::width, 0, ConditionalInteger<last_cell_in_board,col,col+1>::value>::value; // this is the next cell's column
+
+
+    //static_assert(found!= true||next_col!=4,"is found");
 
     typedef typename GetAtIndex<next_row, typename GameBoard<B>::board>::value next_row_list;
     typedef typename GetAtIndex<next_col, next_row_list>::value next_cell;
-    typedef Find_Car_Helper<type, typename next_cell::type, next_row, next_col, found, B> next_helper;
+    typedef Find_Car_Helper<type, next_cell::type, next_row, next_col, found, B> next_helper;
 
-    static constexpr int X_row = ConditionalInteger<found, row, typename next_helper::X_row >::value;
-    static constexpr int X_col = ConditionalInteger<found, col, typename next_helper::X_col >::value;
+    static constexpr int X_row = ConditionalInteger<found, row, next_helper::X_row >::value;
+    static constexpr int X_col = ConditionalInteger<found, col, next_helper::X_col >::value;
 };
 
 // Find_Car_Helper Specialization - stopping condition
-template <CellType type, int row, int col, typename B>
-struct Find_Car_Helper<type, type, row, col, true, B>{
+template <CellType type,CellType type2, int row, int col, typename B>
+struct Find_Car_Helper<type, type2, row, col, true, B>{
     static constexpr int X_row = row;
     static constexpr int X_col = col;
 };
@@ -68,8 +73,9 @@ struct FindCar{
     typedef typename game_board::board mainList;
 
     typedef typename mainList::head::head first_cell;
+   // static_assert(type!=X,"is x");
 
-    typedef Find_Car_Helper<type,typename first_cell::type,0,0,false,mainList> car_loc;
+    typedef Find_Car_Helper<type,first_cell::type,0,0,false,mainList> car_loc;
     static constexpr int X_row_idx = car_loc::X_row;
     static constexpr int X_col_idx = car_loc::X_col;
 };
@@ -93,27 +99,27 @@ struct Dir{};
 template< int Ro,int Col,int len>
 struct Dir<RIGHT,Ro,Col,len> {
     static constexpr int row_i = Ro;
-    static constexpr int col_i = Col + (Length - 1);
+    static constexpr int col_i = Col + (len - 1);
 };
 
 // Specialization for LEFT
 template<int Ro, int Col, int len>
 struct Dir<LEFT, Ro, Col, len> {
     static constexpr int row_i = Ro;
-    static constexpr int col_i = Col + Length - 1;
+    static constexpr int col_i = Col + len - 1;
 };
 
 // Specialization for UP
 template<int Ro, int Col, int len>
 struct Dir<UP, Ro, Col, len> {
-    static constexpr int row_i = Ro + Length - 1;
+    static constexpr int row_i = Ro + len- 1;
     static constexpr int col_i = Col;
 };
 
 // Specialization for DOWN
 template<int Ro, int Col, int len>
 struct Dir<DOWN, Ro, Col, len> {
-    static constexpr int row_i = Ro + (Length - 1);
+    static constexpr int row_i = Ro + len - 1;
     static constexpr int col_i = Col;
 };
 
@@ -136,7 +142,7 @@ struct direct<RIGHT,counter,myL,my_cell,Co1,Ro1,Co2,Ro2>{
     typedef typename GetAtIndex<Ro1,mainList>::value subList ;
     typedef typename GetAtIndex<(Co2+counter),subList>::value celli;  // this is the closer end (respect to "d") after the #"count" step
     //typedef typename GetAtIndex<(Co2+counter-1),GetAtIndex<Ro1,mainList>::value>::value to_celli; // this is the further end (respect to "d") before the #"count" step (after the #("count"-1) step)
-    static_assert(celli::type!=EMPTY, "Error,Collision cell MoveVehicle");
+    static_assert(celli::type==EMPTY, "Error,Collision cell MoveVehicle");
     typedef typename SetAtIndex<(Co2+counter),my_cell,subList>::list first; //set cell where moved to the car.
     typedef typename SetAtIndex<(Co1+counter-1),BoardCell<EMPTY,RIGHT,1>,first>::list second;//set prev cell to "Empty"
     typedef typename SetAtIndex<Ro1,second,mainList>::list LL; //update the board
@@ -152,11 +158,11 @@ struct direct<RIGHT,0,myL,my_cell,Co1,Ro1,Co2,Ro2> {
 
 template<int counter,typename myL,typename my_cell,int Co1,int Ro1, int Co2,int Ro2>
 struct direct<LEFT,counter,myL,my_cell,Co1,Ro1,Co2,Ro2>{
-    typedef typename direct<RIGHT, counter - 1, myL, my_cell,Co1,Ro1, Co2, Ro2>::moved mainList; // main list of the board after we moved the car "count"-1 steps
+    typedef typename direct<LEFT, counter - 1, myL, my_cell,Co1,Ro1, Co2, Ro2>::moved mainList; // main list of the board after we moved the car "count"-1 steps
     typedef typename GetAtIndex<Ro1,mainList>::value subList ;
     typedef typename GetAtIndex<(Co1-counter),subList>::value celli;  // this is the closer end (respect to "d") after the #"count" step
     //typedef typename GetAtIndex<(Co2+counter-1),GetAtIndex<Ro1,mainList>::value>::value to_celli; // this is the further end (respect to "d") before the #"count" step (after the #("count"-1) step)
-    static_assert(celli::type!=EMPTY, "Error,Collision cell MoveVehicle");
+    static_assert(celli::type==EMPTY, "Error,Collision cell MoveVehicle");
     typedef typename SetAtIndex<(Co1-counter),my_cell,subList>::list first; //set cell where moved to the car.
     typedef typename SetAtIndex<(Co2-counter+1),BoardCell<EMPTY,LEFT,1>,first>::list second;//set prev cell to "Empty"
     typedef typename SetAtIndex<Ro1,second,mainList>::list LL; //update the board
@@ -188,7 +194,7 @@ struct direct<DOWN,0,myL,my_cell,Co1,Ro1,Co2,Ro2> {
 template<int counter,typename myL,typename my_cell,int Co1,int Ro1, int Co2,int Ro2>
 struct direct<UP,counter,myL,my_cell,Co1,Ro1,Co2,Ro2>{
     typedef typename Transpose<myL>::matrix transposed;
-    typedef typename direct<LEFT,counter,transposed L,my_cell,Ro1,Co1,Ro2,Co2>::moved trans_moved;
+    typedef typename direct<LEFT,counter,transposed,my_cell,Ro1,Co1,Ro2,Co2>::moved trans_moved;
     typedef typename Transpose<trans_moved>::matrix moved;
 };
 
@@ -220,11 +226,15 @@ struct MoveVehicle<GameBoard<B>,R1,C1,Dl,A>{
     static_assert((((Dl==UP||Dl==DOWN)&&(my_cell::direction==UP||my_cell::direction ==DOWN))
                 ||((Dl==LEFT||Dl==RIGHT)&&(my_cell::direction==LEFT||my_cell::direction ==RIGHT))),
             "Error,direction cell MoveVehicle");
-    static constexpr int R2= FindCar<typename my_cell::type,PrevBoard>::X_row_idx;
-    static constexpr int C2= FindCar<typename my_cell::type,PrevBoard>::X_col_idx;
+    static constexpr int R2= FindCar<my_cell::type,PrevBoard>::X_row_idx;
+    static constexpr int C2= FindCar<my_cell::type,PrevBoard>::X_col_idx;
     // the further end:
-    static constexpr int R3= Dir<Dl,R2,C2,typename my_cell::length>::row_i;
-    static constexpr int C3= Dir<Dl,R2,C2,typename my_cell::length>::col_i;
+    static constexpr int R3= Dir<Dl,R2,C2,my_cell::length>::row_i;
+    static constexpr int C3= Dir<Dl,R2,C2,my_cell::length>::col_i;
+
+  //  static_assert(C2!=3,"is 3");
+  //  static_assert(C3!=4,"is 4");
+  //  static_assert(R2!=2,"is 2");
 
     typedef typename direct<Dl,A,B,my_cell,C2,R2,C3,R3>::moved o1;
     typedef GameBoard<o1> board;

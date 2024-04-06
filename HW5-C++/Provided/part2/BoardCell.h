@@ -6,7 +6,7 @@
 
 template<CellType T, Direction D, int L>
 struct BoardCell {
-    static constexpr  type = T;
+    static constexpr CellType type = T;
     static constexpr Direction direction = D;
     static constexpr int length = L;
 };
