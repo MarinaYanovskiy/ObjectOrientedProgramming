@@ -6,20 +6,19 @@ struct List {};
 
 template <typename T, typename... Ts>
 struct List <T, Ts...> {
-    T head;
+    typedef T head;
     typedef List<Ts...> next;
-    static constexpr int size = sizeof...(Ts) + 1;
+    static constexpr int size = (sizeof...(Ts)) + 1;
 };
 
 // TODO: Ask in Piazza what if the list is empty.
-// template <typename T>
-// struct List<T> {
-//     T head;
-//     typedef List<> next;
-//     static constexpr int size = 1;
-// };
+ template <typename T>
+ struct List<T> {
+     typedef T head;
+     typedef List<> next;
+     static constexpr int size = 1;
+ };
 
-// TODO: This is the empty list
 template <>
 struct List<> {
     static constexpr int size = 0;
@@ -53,7 +52,7 @@ struct SetAtIndex{};
 
 template<int N, typename U, typename T, typename... Ts>
 struct SetAtIndex<N, U, List<T, Ts...>> {
-    typedef typename PrependList<T, typename SetAtIndex<N - 1, U, List<Ts...>>::list>::list list;
+    typedef typename PrependList<T, typename SetAtIndex<N - 1, U, typename List<Ts...>>::list>::list list;
 };
 
 template<typename U, typename T, typename... Ts>

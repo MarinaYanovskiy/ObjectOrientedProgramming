@@ -6,7 +6,7 @@
 
 template<typename L>
 struct GameBoard {
-    List board = L; // TODO: Ask later
+    typedef L board;
     static constexpr int width = L::head::size;
     static constexpr int length = L::size;
     
